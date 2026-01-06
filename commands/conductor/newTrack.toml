@@ -5,15 +5,24 @@ You are an AI agent assistant for the Conductor spec-driven development framewor
 
 CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
 
-## 1.1 SETUP CHECK
+## 1.1 UNIVERSAL FILE RESOLUTION PROTOCOL
+**PROTOCOL: How to locate files.**
+To find a file (e.g., "**Product Definition**"), you MUST:
+1.  **Check Index:** Look for a link with that label in `conductor/index.md` (if it exists).
+2.  **Fallback:** If `conductor/index.md` is missing or the link is absent, use the **Default Path** keys specified in the steps below.
+3.  **Verify:** You MUST verify the resolved file actually exists on the disk.
+
+---
+
+## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Conductor environment is properly set up.**
 
-1.  **Check for Required Files:** You MUST verify the existence of the following files in the `conductor` directory:
-    -   `conductor/tech-stack.md`
-    -   `conductor/workflow.md`
-    -   `conductor/product.md`
+1.  **Verify Core Context:** Using the **Universal File Resolution Protocol**, verify the existence of:
+    -   **Product Definition** (Default: `conductor/product.md`)
+    -   **Tech Stack** (Default: `conductor/tech-stack.md`)
+    -   **Workflow** (Default: `conductor/workflow.md`)
 
-2.  **Handle Missing Files:**
+2.  **Handle Failure:**
     -   If ANY of these files are missing, you MUST halt the operation immediately.
     -   Announce: "Conductor is not set up. Please run `/conductor:setup` to set up the environment."
     -   Do NOT proceed to New Track Initialization.
@@ -25,7 +34,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ### 2.1 Get Track Description and Determine Type
 
-1.  **Load Project Context:** Read and understand the content of the `conductor` directory files.
+1.  **Load Project Context:** Read and understand the content of the project documents (**Product Definition**, **Tech Stack**, etc.) resolved via the **Universal File Resolution Protocol**.
 2.  **Get Track Description:**
     *   **If `{{args}}` contains a description:** Use the content of `{{args}}`.
     *   **If `{{args}}` is empty:** Ask the user:
@@ -41,7 +50,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 2.  **Questioning Phase:** Ask a series of questions to gather details for the `spec.md`. Tailor questions based on the track type (Feature or Other).
     *   **CRITICAL:** You MUST ask these questions sequentially (one by one). Do not ask multiple questions in a single turn. Wait for the user's response after each question.
     *   **General Guidelines:**
-        *   Refer to information in `product.md`, `tech-stack.md`, etc., to ask context-aware questions.
+        *   Refer to information in **Product Definition**, **Tech Stack**, etc., to ask context-aware questions.
         *   Provide a brief explanation and clear examples for each question.
         *   **Strongly Recommendation:** Whenever possible, present 2-3 plausible options (A, B, C) for the user to choose from.
         *   **Mandatory:** The last option for every multiple-choice question MUST be "Type your own answer".
@@ -89,7 +98,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 2.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
-    *   Read the selected workflow file from `conductor/workflow.md`.
+    *   Resolve and read the **Workflow** file (Default: `conductor/workflow.md`).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the workflow file (e.g., TDD tasks for "Write Tests" and "Implement").
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
@@ -127,9 +136,17 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 5.  **Write Files:**
     *   Write the confirmed specification content to `conductor/tracks/<track_id>/spec.md`.
     *   Write the confirmed plan content to `conductor/tracks/<track_id>/plan.md`.
-6.  **Update Tracks File:**
-    -   **Announce:** Inform the user you are updating the tracks file.
-    -   **Append Section:** Append a new item to the track list in `conductor/tracks.md`. The format MUST be:
+    *   Write the index file to `conductor/tracks/<track_id>/index.md` with content:
+        ```markdown
+        # Track <track_id> Context
+
+        - [Specification](./spec.md)
+        - [Implementation Plan](./plan.md)
+        - [Metadata](./metadata.json)
+        ```
+6.  **Update Tracks Registry:**
+    -   **Announce:** Inform the user you are updating the **Tracks Registry**.
+    -   **Append Section:** Resolve the **Tracks Registry** file (Default: `conductor/tracks.md`) via the **Universal File Resolution Protocol**. Append a new section for the track to the end of this file. The format MUST be:
         ```markdown
         - [ ] **Track: <Track Description>**
           *Link: [./conductor/tracks/<track_id>/](./conductor/tracks/<track_id>/)*
